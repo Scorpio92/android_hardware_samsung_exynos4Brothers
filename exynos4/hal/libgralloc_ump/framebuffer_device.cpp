@@ -128,6 +128,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
                 ALOGE("S3CFB_SET_VSYNC_INT disable failed");
                 return 0;
             }
+        }
 #else
         /*Standard Android way*/
 #ifdef MALI_VSYNC_EVENT_REPORT_ENABLE
@@ -145,7 +146,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
         gralloc_mali_vsync_report(MALI_VSYNC_EVENT_END_WAIT);
 #endif
 #endif
-        }
+
         m->currentBuffer = buffer;
     } else {
         /*
@@ -321,7 +322,7 @@ int init_frame_buffer_locked(struct private_module_t* module)
     module->ydpi = ydpi;
     module->fps = fps;
 
-    char value[32];
+    char value[PROPERTY_VALUE_MAX];
     property_get("debug.gralloc.vsync", value, "1");
     module->enableVSync = atoi(value);
     /*
@@ -418,18 +419,28 @@ int framebuffer_device_open(hw_module_t const* module, const char* name, hw_devi
 
     alloc_device_t* gralloc_device;
     status = gralloc_open(module, &gralloc_device);
-    if (status < 0)
-        return status;
-
-    private_module_t* m = (private_module_t*)module;
-    status = init_frame_buffer(m);
     if (status < 0) {
-        gralloc_close(gralloc_device);
+        ALOGE("Fail to Open gralloc device");
         return status;
     }
 
     /* initialize our state here */
-    framebuffer_device_t *dev = new framebuffer_device_t;
+    framebuffer_device_t *dev = (framebuffer_device_t *)malloc(sizeof(framebuffer_device_t));
+    if (dev == NULL) {
+        ALOGE("Failed to allocate memory for dev");
+        gralloc_close(gralloc_device);
+        return status;
+    }    
+
+    private_module_t* m = (private_module_t*)module;
+    status = init_frame_buffer(m);
+    if (status < 0) {
+        ALOGE("Fail to init framebuffer");
+        free(dev);
+        gralloc_close(gralloc_device);
+        return status;
+    }
+
     memset(dev, 0, sizeof(*dev));
 
     /* initialize the procs */

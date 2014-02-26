@@ -36,16 +36,6 @@ enum Type {
     SEMCOVE
 };
 
-/*
- * murata:
- * 00:37:6d
- * 88:30:8a
- *
- * semcosh:
- * 5c:0a:5b
- *
- */
-
 int main() {
     FILE* file;
     FILE* cidfile;
@@ -57,7 +47,7 @@ int main() {
 
     /* open mac addr file */
     file = fopen(MACADDR_PATH, "r");
-    if(file == 0) {
+    if (file == 0) {
         fprintf(stderr, "open(%s) failed\n", MACADDR_PATH);
         ALOGE("Can't open %s\n", MACADDR_PATH);
         return -1;
@@ -65,21 +55,26 @@ int main() {
 
     /* get and compare mac addr */
     str = fgets(mac_addr_half, 9, file);
-    if(str == 0) {
+    if (str == 0) {
         fprintf(stderr, "fgets() from file %s failed\n", MACADDR_PATH);
         ALOGE("Can't read from %s\n", MACADDR_PATH);
         return -1;
     }
 
     /* murata */
-    if(strncasecmp(mac_addr_half, "00:37:6d", 9) == 0 ||
+    if (strncasecmp(mac_addr_half, "00:37:6d", 9) == 0 ||
         strncasecmp(mac_addr_half, "88:30:8a", 9) == 0 ||
-        strncasecmp(mac_addr_half, "20:02:af", 9) == 0) {
+        strncasecmp(mac_addr_half, "20:02:af", 9) == 0 ||
+        strncasecmp(mac_addr_half, "5c:f8:a1", 9) == 0 ||
+        strncasecmp(mac_addr_half, "40:f3:08", 9) == 0 ||
+        strncasecmp(mac_addr_half, "f0:27:65", 9) == 0 ||
+        strncasecmp(mac_addr_half, "60:21:c0", 9) == 0) {
         type = MURATA;
     }
 
     /* semcosh */
-    if(strncasecmp(mac_addr_half, "5c:0a:5b", 9) == 0) {
+    if (strncasecmp(mac_addr_half, "5c:0a:5b", 9) == 0 ||
+        strncasecmp(mac_addr_half, "cc:3a:61", 9) == 0) {
         type = SEMCOSH;
     }
 
@@ -113,7 +108,7 @@ int main() {
             break;
          }
 
-        if(ret != 0) {
+        if (ret != 0) {
             fprintf(stderr, "fputs() to file %s failed\n", CID_PATH);
             ALOGE("Can't write to %s\n", CID_PATH);
             return -1;
@@ -125,14 +120,14 @@ int main() {
         amode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
         ret = chmod(CID_PATH, amode);
 
-        char* chown_cmd = (char*) malloc(strlen("chown system ") + strlen(CID_PATH));
-        char* chgrp_cmd = (char*) malloc(strlen("chgrp system ") + strlen(CID_PATH));
+        char* chown_cmd = (char*) malloc(strlen("chown system ") + strlen(CID_PATH) + 1);
+        char* chgrp_cmd = (char*) malloc(strlen("chgrp system ") + strlen(CID_PATH) + 1);
         sprintf(chown_cmd, "chown system %s", CID_PATH);
         sprintf(chgrp_cmd, "chgrp system %s", CID_PATH);
         system(chown_cmd);
         system(chgrp_cmd);
 
-        if(ret != 0) {
+        if (ret != 0) {
             fprintf(stderr, "chmod() on file %s failed\n", CID_PATH);
             ALOGE("Can't set permissions on %s\n", CID_PATH);
             return ret;
