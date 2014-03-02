@@ -26,6 +26,7 @@
 #ifndef ANDROID_SEC_HWC_UTILS_H_
 #define ANDROID_SEC_HWC_UTILS_H_
 
+#include "videodev2.h"
 #include <stdlib.h>
 #include <hardware/hardware.h>
 #include <hardware/hwcomposer.h>
